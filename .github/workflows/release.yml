@@ -4,7 +4,7 @@ on:
   # Dispara con push a la rama principal (main) para pruebas sencillas
   push:
     branches:
-      - main 
+      - master 
     # Dispara también con tags 'v*' para releases
     tags:
       - 'v*'
