@@ -1,0 +1,52 @@
+name: 'Build and Release'
+
+on:
+  push:
+    tags:
+      # Este workflow se ejecuta cuando haces push a una etiqueta (tag)
+      # que comienza con 'v', por ejemplo, 'v0.1.0'
+      - 'v*'
+
+jobs:
+  build-macos:
+    # 🎯 ¡Aquí es donde indicamos que necesitamos una máquina Mac!
+    runs-on: macos-latest
+    
+    # Define la versión de Node.js
+    strategy:
+      matrix:
+        node-version: [20.x]
+        
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Dependencies (using bun)
+        # Asumiendo que usas bun para tu frontend
+        run: bun install
+        
+      # 🚀 ¡El paso mágico de Tauri!
+      - name: Build macOS App
+        uses: tauri-apps/tauri-action@v0
+        # No especificamos variables de firma de Apple, por lo que compilará 
+        # sin firmar (ideal para tu distribución Ad-Hoc).
+        with:
+          # Especificamos que queremos los bundles para Apple (macOS)
+          args: --target universal-apple-darwin
+          
+      - name: Upload macOS Artifacts (App Bundle and DMG)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Yeux-macos-app-and-dmg
+          # Ruta donde Tauri guarda los bundles compilados:
+          path: src-tauri/target/universal-apple-darwin/release/bundle
