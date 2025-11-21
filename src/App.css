@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url("/fonts/SpaceGrotesk.ttf") format("truetype");
+}
+
+@theme {
+  --font-space: "Space Grotesk", sans-serif;
+}
+
+@layer {
+  body {
+    @apply font-space;
+  }
+
+  .btn {
+    @apply text-2xl px-8 py-3 border-2 border-black cursor-pointer font-black transition-all duration-150 ease-in-out rounded-full uppercase;
+  }
+}

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=Utility;Education;Health;TimeManagement;
+Comment=Desktop app to protect eyesight during long work hours, using the 20-20-20 rule.
+Exec=yeux
+StartupWMClass=yeux
+Icon=yeux
+Name=Yeux: Focus Monitor
+Terminal=false
+Type=Application
