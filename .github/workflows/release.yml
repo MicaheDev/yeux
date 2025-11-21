@@ -1,18 +1,19 @@
 name: 'Build and Release'
 
 on:
+  # 🔄 CAMBIO CLAVE: Dispara el workflow con cada push a la rama 'main' (para pruebas)
   push:
+    branches:
+      - master
+  # También se disparará cuando hagas un push de una etiqueta que comience con 'v' (para releases oficiales)
     tags:
-      # Este workflow se ejecuta cuando haces push a una etiqueta (tag)
-      # que comienza con 'v', por ejemplo, 'v0.1.0'
       - 'v*'
 
 jobs:
   build-macos:
-    # 🎯 ¡Aquí es donde indicamos que necesitamos una máquina Mac!
+    # 🎯 Máquina Mac para compilar el bundle nativo
     runs-on: macos-latest
     
-    # Define la versión de Node.js
     strategy:
       matrix:
         node-version: [20.x]
@@ -20,6 +21,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # 📦 Instalar Bun (necesario si Bun no está en el PATH por defecto)
+      - name: Install bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -32,21 +39,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install Dependencies (using bun)
-        # Asumiendo que usas bun para tu frontend
+        # Esto instala tus dependencias de frontend
         run: bun install
         
-      # 🚀 ¡El paso mágico de Tauri!
+      # 🚀 El paso de compilación que usa la máquina Mac
       - name: Build macOS App
         uses: tauri-apps/tauri-action@v0
-        # No especificamos variables de firma de Apple, por lo que compilará 
-        # sin firmar (ideal para tu distribución Ad-Hoc).
         with:
-          # Especificamos que queremos los bundles para Apple (macOS)
+          # --target universal-apple-darwin genera un binario que funciona 
+          # tanto en Macs Intel como Apple Silicon (M1/M2/M3).
           args: --target universal-apple-darwin
           
+      # 📤 Cargar los archivos .app y .dmg compilados como un artefacto
       - name: Upload macOS Artifacts (App Bundle and DMG)
         uses: actions/upload-artifact@v4
         with:
           name: Yeux-macos-app-and-dmg
-          # Ruta donde Tauri guarda los bundles compilados:
+          # Ruta donde Tauri guarda los bundles compilados para el target universal:
           path: src-tauri/target/universal-apple-darwin/release/bundle
