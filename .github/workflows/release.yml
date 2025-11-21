@@ -1,17 +1,16 @@
 name: 'Build and Release'
 
 on:
-  # 🔄 CAMBIO CLAVE: Dispara el workflow con cada push a la rama 'main' (para pruebas)
+  # Dispara con push a la rama principal (main) para pruebas sencillas
   push:
     branches:
-      - master
-  # También se disparará cuando hagas un push de una etiqueta que comience con 'v' (para releases oficiales)
+      - main 
+    # Dispara también con tags 'v*' para releases
     tags:
       - 'v*'
 
 jobs:
   build-macos:
-    # 🎯 Máquina Mac para compilar el bundle nativo
     runs-on: macos-latest
     
     strategy:
@@ -22,7 +21,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 📦 Instalar Bun (necesario si Bun no está en el PATH por defecto)
+      # 📦 Instalar Bun 
       - name: Install bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -33,27 +32,26 @@ jobs:
         with:
           toolchain: stable
       
+      # 🚨 PASO DE CORRECCIÓN CRÍTICO: Añadir el target Intel (x86_64)
+      # Necesario para el target universal-apple-darwin en runners M1/M2/M3.
+      - name: Add x86_64-apple-darwin Target
+        run: rustup target add x86_64-apple-darwin
+        
       - name: Install Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install Dependencies (using bun)
-        # Esto instala tus dependencias de frontend
         run: bun install
         
-      # 🚀 El paso de compilación que usa la máquina Mac
       - name: Build macOS App
         uses: tauri-apps/tauri-action@v0
         with:
-          # --target universal-apple-darwin genera un binario que funciona 
-          # tanto en Macs Intel como Apple Silicon (M1/M2/M3).
           args: --target universal-apple-darwin
           
-      # 📤 Cargar los archivos .app y .dmg compilados como un artefacto
       - name: Upload macOS Artifacts (App Bundle and DMG)
         uses: actions/upload-artifact@v4
         with:
           name: Yeux-macos-app-and-dmg
-          # Ruta donde Tauri guarda los bundles compilados para el target universal:
           path: src-tauri/target/universal-apple-darwin/release/bundle
